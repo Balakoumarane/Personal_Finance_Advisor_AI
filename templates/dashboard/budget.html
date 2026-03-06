@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Budget{% endblock %}
+{% block content %}
+<h1 style="font-size:22px; font-weight:700;">Budget</h1>
+<p style="color:#94a3b8; font-size:13px;">Set and monitor your monthly budget</p>
+<hr style="border-color:#2d2d4e; margin:12px 0 20px;"/>
+
+{% if budget %}
+{% set pct = [budget.pct(), 100]|min %}
+{% set bc  = '#ef4444' if pct > 90 else '#f59e0b' if pct > 70 else '#22c55e' %}
+<div class="card" style="padding:22px; margin-bottom:20px;">
+  <div style="font-weight:600; margin-bottom:16px;">Current Status</div>
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;">
+    {% for lbl, val, clr in [
+      ('Monthly Limit', '₹{:,.0f}'.format(budget.monthly_limit),    '#4E9AF1'),
+      ('Amount Spent',  '₹{:,.0f}'.format(budget.spent_amount),     '#ef4444'),
+      ('Remaining',     '₹{:,.0f}'.format(budget.remaining_amount), '#22c55e'),
+    ] %}
+    <div class="card2" style="padding:14px; text-align:center;">
+      <div style="color:#94a3b8; font-size:11px; margin-bottom:4px;">{{ lbl }}</div>
+      <div style="font-size:20px; font-weight:700; color:{{ clr }};">{{ val }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+    <span style="color:#94a3b8; font-size:13px;">{{ '{:.1f}'.format(pct) }}% used</span>
+    <span style="font-weight:600; font-size:13px; color:{{ bc }};">{{ budget.status() }}</span>
+  </div>
+  <div class="pbar-track">
+    <div class="pbar-fill" style="width:{{ pct }}%; background:{{ bc }};"></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card" style="padding:22px; max-width:480px;">
+  <div style="font-weight:600; margin-bottom:16px;">Update Budget Limit</div>
+  <form method="POST" style="display:flex; gap:10px;">
+    <input class="inp" type="number" name="monthly_limit" step="0.01" min="0"
+           placeholder="New monthly limit (₹)" required/>
+    <button class="btn-blue" style="white-space:nowrap;">Update</button>
+  </form>
+</div>
+{% endblock %}

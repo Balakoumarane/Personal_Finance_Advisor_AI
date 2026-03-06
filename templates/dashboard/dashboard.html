@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:6px;">
+  <h1 style="font-size:22px; font-weight:700;">Dashboard</h1>
+  <p style="color:#94a3b8; font-size:13px;">Welcome back, {{ current_user.name }}!</p>
+</div>
+<hr style="border-color:#2d2d4e; margin:12px 0 20px;"/>
+
+<!-- Stat cards -->
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;">
+  {% for icon, label, value, color in [
+    ('💵','Monthly Income',  '₹{:,.0f}'.format(current_user.monthly_income), '#4E9AF1'),
+    ('📤','Total Spent',     '₹{:,.0f}'.format(expense),  '#ef4444'),
+    ('💰','Savings',         '₹{:,.0f}'.format(savings),  '#22c55e'),
+    ('📋','Transactions',    '{} this month'.format(txn_count), '#7C3AED'),
+  ] %}
+  <div class="card" style="padding:18px;">
+    <div style="color:#94a3b8; font-size:12px; margin-bottom:6px;">{{ icon }}  {{ label }}</div>
+    <div style="font-size:22px; font-weight:700; color:{{ color }};">{{ value }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Budget bar -->
+{% if budget and budget.monthly_limit > 0 %}
+{% set pct = [budget.pct(), 100]|min %}
+{% set bc = '#ef4444' if pct > 90 else '#f59e0b' if pct > 70 else '#22c55e' %}
+<div class="card" style="padding:18px; margin-bottom:20px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <span style="font-weight:600;">Budget Overview</span>
+    <span style="color:{{ bc }}; font-weight:600; font-size:13px;">
+      {{ '{:.1f}'.format(pct) }}%  [{{ budget.status() }}]
+    </span>
+  </div>
+  <div style="color:#94a3b8; font-size:12px; margin-bottom:8px;">
+    Spent ₹{{ '{:,.0f}'.format(budget.spent_amount) }}
+    &nbsp;/&nbsp; Limit ₹{{ '{:,.0f}'.format(budget.monthly_limit) }}
+    &nbsp;/&nbsp; Remaining ₹{{ '{:,.0f}'.format(budget.remaining_amount) }}
+  </div>
+  <div class="pbar-track">
+    <div class="pbar-fill" style="width:{{ pct }}%; background:{{ bc }};"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent transactions -->
+<div class="card" style="padding:18px;">
+  <div style="font-weight:600; margin-bottom:14px;">Recent Transactions</div>
+  {% if recent %}
+    {% for t in recent %}
+    <div style="display:flex; align-items:center; padding:10px 12px;
+                background:#212136; border-radius:8px; margin-bottom:6px;">
+      <span style="width:180px; font-size:13px;">{{ t.category.category_name }}</span>
+      <span style="flex:1; color:#94a3b8; font-size:12px;">{{ t.description }}</span>
+      <span style="color:#94a3b8; font-size:12px; margin-right:14px;">{{ t.date }}</span>
+      <span style="font-weight:600; font-size:13px;
+                   color:{% if t.type=='expense' %}#fca5a5{% else %}#86efac{% endif %};">
+        {% if t.type=='expense' %}-{% else %}+{% endif %}₹{{ '{:,.0f}'.format(t.amount) }}
+      </span>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#94a3b8; text-align:center; padding:20px;">
+      No transactions yet.
+      <a href="{{ url_for('add_transaction') }}" style="color:#4E9AF1;">Add your first one →</a>
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

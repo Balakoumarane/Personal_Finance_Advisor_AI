@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}AI Advisor{% endblock %}
+{% block content %}
+<h1 style="font-size:22px; font-weight:700;">AI Advisor</h1>
+<p style="color:#94a3b8; font-size:13px;">Personalised insights powered by Machine Learning</p>
+<hr style="border-color:#2d2d4e; margin:12px 0 20px;"/>
+
+<button class="btn-purple" onclick="runAnalysis()" id="analyzeBtn"
+        style="font-size:14px; padding:12px 28px; margin-bottom:20px;">
+  🤖 Run AI Analysis
+</button>
+
+<div id="results" style="display:none;">
+
+  <!-- Score -->
+  <div class="card" style="padding:20px; margin-bottom:16px;">
+    <div style="color:#94a3b8; font-size:12px; margin-bottom:6px;">Financial Health Score</div>
+    <div id="scoreVal" style="font-size:36px; font-weight:700; margin-bottom:8px;"></div>
+    <div class="pbar-track">
+      <div class="pbar-fill" id="scorePbar" style="width:0%;"></div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+    <div class="card" style="padding:16px; text-align:center;">
+      <div style="color:#94a3b8; font-size:12px; margin-bottom:4px;">Predicted Next Month</div>
+      <div id="predictedVal" style="font-size:22px; font-weight:700; color:#4E9AF1;"></div>
+    </div>
+    <div class="card" style="padding:16px; text-align:center;">
+      <div style="color:#94a3b8; font-size:12px; margin-bottom:4px;">Savings Potential</div>
+      <div id="potentialVal" style="font-size:22px; font-weight:700; color:#22c55e;"></div>
+    </div>
+  </div>
+
+  <!-- Overspending alert -->
+  <div id="overspendAlert" style="display:none; background:#2d1818; border:1px solid #ef4444;
+       border-radius:8px; padding:14px; margin-bottom:16px; color:#ef4444;">
+    ⚠️ You are overspending relative to your monthly income!
+  </div>
+
+  <!-- Suggestions -->
+  <div style="font-weight:600; margin-bottom:10px;">Personalised Suggestions</div>
+  <div id="suggestions"></div>
+</div>
+
+<div id="loading" style="display:none; color:#94a3b8; padding:20px;">
+  ⏳ Analysing your finances...
+</div>
+
+<script>
+async function runAnalysis() {
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display  = 'block';
+
+  const res  = await fetch('/api/ai-analyze', { method: 'POST' });
+  const data = await res.json();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  // Score
+  const score    = data.score;
+  const sc_color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+  document.getElementById('scoreVal').textContent  = `${score} / 100`;
+  document.getElementById('scoreVal').style.color  = sc_color;
+  document.getElementById('scorePbar').style.width = `${score}%`;
+  document.getElementById('scorePbar').style.background = sc_color;
+
+  // Stats
+  document.getElementById('predictedVal').textContent =
+    data.predicted > 0 ? `₹${data.predicted.toLocaleString('en-IN')}` : 'Need more data';
+  document.getElementById('potentialVal').textContent =
+    data.potential > 0 ? `₹${data.potential.toLocaleString('en-IN')}` : 'N/A';
+
+  // Overspending
+  document.getElementById('overspendAlert').style.display =
+    data.overspending ? 'block' : 'none';
+
+  // Suggestions
+  const sDiv = document.getElementById('suggestions');
+  sDiv.innerHTML = '';
+  data.suggestions.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'card2';
+    el.style.cssText = 'padding:14px 18px; margin-bottom:8px; color:#e2e8f0; font-size:13px;';
+    el.textContent = s;
+    sDiv.appendChild(el);
+  });
+
+  document.getElementById('analyzeBtn').disabled = false;
+}
+</script>
+{% endblock %}

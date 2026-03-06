@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Add Transaction{% endblock %}
+{% block content %}
+
+<h1 style="font-size:22px; font-weight:700;">Add Transaction</h1>
+<p style="color:#94a3b8; font-size:13px; margin-bottom:6px;">Record a new income or expense</p>
+<hr style="border-color:#2d2d4e; margin:12px 0 20px;"/>
+
+<div class="card" style="max-width:580px; padding:28px;">
+  <form method="POST" id="txnForm">
+
+    <div style="margin-bottom:16px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">AMOUNT (₹) *</label>
+      <input class="inp" type="number" name="amount" step="0.01" min="0.01"
+             required placeholder="e.g. 500"/>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:8px;">TYPE *</label>
+      <div style="display:flex; gap:20px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#e2e8f0;">
+          <input type="radio" name="type" value="expense" checked/> 💸 Expense
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#e2e8f0;">
+          <input type="radio" name="type" value="income"/> 💵 Income
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">DESCRIPTION *</label>
+      <div style="display:flex; gap:8px;">
+        <input class="inp" type="text" name="description" id="descInput"
+               required placeholder="e.g. Lunch at Zomato"/>
+        <button type="button" onclick="autoClassify()"
+                style="background:#16213e; color:#4E9AF1; border:1px solid #4E9AF1;
+                       border-radius:8px; padding:0 14px; cursor:pointer; white-space:nowrap;
+                       font-size:12px;">
+          🤖 Auto
+        </button>
+      </div>
+      <div id="classifyMsg" style="color:#4E9AF1; font-size:12px; margin-top:4px; display:none;"></div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">CATEGORY *</label>
+      <select class="inp" name="category_id" id="catSelect" required>
+        {% for cat in categories %}
+        <option value="{{ cat.id }}">{{ cat.category_name }} ({{ cat.category_type }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">PAYMENT METHOD</label>
+      <select class="inp" name="payment_method">
+        {% for pm in ['Cash','UPI','Card','Net Banking','Cheque'] %}
+        <option value="{{ pm }}">{{ pm }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">LOCATION (optional)</label>
+      <input class="inp" type="text" name="location" placeholder="e.g. Swiggy / Home"/>
+    </div>
+
+    <button class="btn-blue" style="width:100%; font-size:15px; padding:12px;">
+      ➕ Add Transaction
+    </button>
+  </form>
+</div>
+
+<script>
+const categories = {
+  {% for cat in categories %}
+  "{{ cat.category_name }}": {{ cat.id }},
+  {% endfor %}
+};
+
+async function autoClassify() {
+  const desc = document.getElementById('descInput').value.trim();
+  if (!desc) { alert('Enter a description first.'); return; }
+  const res  = await fetch('/api/classify', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({description: desc})
+  });
+  const data = await res.json();
+  if (data.category_id) {
+    document.getElementById('catSelect').value = data.category_id;
+    const msg = document.getElementById('classifyMsg');
+    msg.textContent = `🤖 Auto-classified as: ${data.category}`;
+    msg.style.display = 'block';
+  }
+}
+</script>
+{% endblock %}

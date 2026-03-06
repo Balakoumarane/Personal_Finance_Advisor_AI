@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Register — AI Finance Advisor{% endblock %}
+{% block auth_content %}
+<div class="card" style="width:440px; padding:40px;">
+  <div style="text-align:center; margin-bottom:24px;">
+    <div style="font-size:42px;">💰</div>
+    <h1 style="font-size:20px; font-weight:700; color:#e2e8f0; margin:6px 0 2px;">Create Account</h1>
+    <p style="color:#94a3b8; font-size:13px;">Start your financial journey</p>
+  </div>
+
+  <form method="POST">
+    {% for field, label, ph, type in [
+        ('name',           'FULL NAME',         'Your full name',     'text'),
+        ('email',          'EMAIL ADDRESS',      'you@email.com',      'email'),
+        ('phone',          'PHONE NUMBER',       '10-digit number',    'text'),
+        ('password',       'PASSWORD',           'Min 6 characters',   'password'),
+        ('monthly_income', 'MONTHLY INCOME (₹)', 'e.g. 40000',        'number'),
+    ] %}
+    <div style="margin-bottom:12px;">
+      <label style="color:#94a3b8; font-size:11px; display:block; margin-bottom:5px;">{{ label }}</label>
+      <input class="inp" type="{{ type }}" name="{{ field }}"
+             required placeholder="{{ ph }}"
+             {% if type == 'number' %}step="0.01" min="0"{% endif %}/>
+    </div>
+    {% endfor %}
+    <button class="btn-purple" style="width:100%; font-size:15px; padding:12px; margin-top:10px;">
+      Create Account →
+    </button>
+  </form>
+
+  <p style="text-align:center; margin-top:16px; color:#94a3b8; font-size:13px;">
+    Already have an account?
+    <a href="{{ url_for('login') }}" style="color:#4E9AF1; text-decoration:none;">Login</a>
+  </p>
+</div>
+{% endblock %}
